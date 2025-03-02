@@ -40,7 +40,6 @@ exports.registerUser = async (req, res) => {
     }
 }
 
-
 exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -55,21 +54,25 @@ exports.loginUser = async (req, res) => {
             return res.status(404).json({ message: "Incorrect Password", errorType: "incorrectPassword" });
         }
 
-        // Use the secret key from the .env file
+        // Generate JWT token
         const token = jwt.sign(
             { id: findUser._id, email: findUser.email },
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
 
+        // Exclude password from the response
+        const { password: _, ...userData } = findUser.toObject();
+
         return res.status(201).json({
             message: "Login Successfully",
-            token: token,
+            token,
             errorType: "Success",
-            user: { id: findUser._id, email: findUser.email },
+            user: userData, 
             status: true,
         });
     } catch (error) {
-        return res.status(500).json({ message: `Error.........${error}` });
+        return res.status(500).json({ message: `Error: ${error.message}` });
     }
+
 };
